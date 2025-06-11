@@ -10,7 +10,7 @@ export class PaymentsService {
   private readonly stripe = new Stripe(
     this.configService.get('STRIPE_SECRET_KEY'),
     {
-      apiVersion: "2025-05-28.basil",
+      apiVersion: '2022-11-15',
     },
   );
 
@@ -18,7 +18,7 @@ export class PaymentsService {
     private readonly configService: ConfigService,
     @Inject(NOTIFICATIONS_SERVICE)
     private readonly notificationsService: ClientProxy,
-  ) {}
+  ) { }
 
   async createCharge({ card, amount, email }: PaymentsCreateChargeDto) {
     // const paymentMethod = await this.stripe.paymentMethods.create({
@@ -26,7 +26,7 @@ export class PaymentsService {
     //   card,
     // });
 
-   const paymentIntent = await this.stripe.paymentIntents.create({
+    const paymentIntent = await this.stripe.paymentIntents.create({
       amount: amount * 100,
       currency: 'usd',
       confirm: true,

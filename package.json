@@ -6,20 +6,18 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "npx run migrate && node",
-    "migrate": "npx prisma migrate deploy",
+    "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "docker-compose --project-directory ./e2e up e2e"
+    "test:e2e": "jest --config ./apps/sleeper/test/jest-e2e.json"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -29,18 +27,17 @@
     "@nestjs/microservices": "^11.1.1",
     "@nestjs/mongoose": "^11.0.3",
     "@nestjs/platform-express": "^11.0.1",
+    "amqp-connection-manager": "^4.1.14",
+    "amqplib": "^0.10.8",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "cookie-parser": "^1.4.7",
     "express": "^5.1.0",
     "joi": "^17.13.3",
-    "mongodb": "6.1.0",
     "mongoose": "^8.14.3",
     "nestjs-pino": "^4.4.0",
-    "pino-http": "^8.5.0",
     "pino-pretty": "^13.0.0",
     "reflect-metadata": "^0.2.2",
-    "rimraf": "^5.0.5",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {

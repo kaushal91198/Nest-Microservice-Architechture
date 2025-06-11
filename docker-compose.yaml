@@ -4,29 +4,34 @@ services:
       context: .
       dockerfile: ./apps/reservations/Dockerfile
       target: development
-    command: sh -c "npx prisma migrate deploy --schema apps/reservations/prisma/schema.prisma && npx prisma generate --schema apps/reservations/prisma/schema.prisma && npm run start:dev reservations"
-    depends_on:
-      - postgres
+    command: npm run start:dev reservations      
     env_file:
-      - ./apps/reservations/.env # This .env file needs PAYMENTS_PORT and AUTH_PORT
+      - ./apps/reservations/.env
     ports:
       - '3000:3000'
     volumes:
       - .:/usr/src/app
+    depends_on:
+      - mongo
+      - payments
+    environment:
+      MONGO_URL: mongodb://mongo:27017/sleepr
   auth:
     build:
       context: .
       dockerfile: ./apps/auth/Dockerfile
       target: development
-    command: sh -c "npx prisma migrate deploy --schema apps/auth/prisma/schema.prisma && npx prisma generate --schema apps/auth/prisma/schema.prisma && npm run start:dev auth"
-    depends_on:
-      - postgres
+    command: npm run start:dev auth
     env_file:
       - ./apps/auth/.env
     ports:
-      - '3001:3001' # Auth service listens on 3001 inside the container
+      - '3001:3001'
     volumes:
       - .:/usr/src/app
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URL: mongodb://mongo:27017/sleepr    
   payments:
     build:
       context: .
@@ -35,11 +40,14 @@ services:
     command: npm run start:dev payments
     env_file:
       - ./apps/payments/.env
-    # Add ports mapping for payments service to match what reservations expects
     ports:
-      - '3003:3003' # Payments service should listen on 3003 inside the container
+      - '3003:3003'
     volumes:
       - .:/usr/src/app
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URL: mongodb://mongo:27017/sleepr
   notifications:
     build:
       context: .
@@ -50,9 +58,19 @@ services:
       - ./apps/notifications/.env
     volumes:
       - .:/usr/src/app
-  postgres:
-    image: postgres
-    ports:
-      - 5432:5432
+    depends_on:
+      - mongo
     environment:
-      POSTGRES_PASSWORD: postgres
+      MONGO_URL: mongodb://mongo:27017/sleepr    
+  mongo:
+    image: mongo
+    ports:
+      - '27018:27017'  # Expose to host for Compass
+    volumes:
+      - mongo_data:/data/db  # Persist Mongo data
+  rabbitmq:
+    image: rabbitmq
+    ports:  
+      - '5672:5672'
+volumes:
+  mongo_data:
