@@ -8,9 +8,11 @@ import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LocalStategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { RedisModule } from '@app/common/services/redis.module';
 
 @Module({
   imports: [
+    RedisModule,
     UsersModule,
     LoggerModule,
     ConfigModule.forRoot({

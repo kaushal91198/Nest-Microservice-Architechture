@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UserDocument } from '@app/common';
+import { RedisService, UserDocument } from '@app/common';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import { TokenPayload } from './interfaces/token-payload.interface';
@@ -10,6 +10,7 @@ export class AuthService {
   constructor(
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
+    private readonly redisService: RedisService
   ) {}
 
   async login(user: UserDocument, response: Response) {
