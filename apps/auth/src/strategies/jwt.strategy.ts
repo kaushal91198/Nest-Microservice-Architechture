@@ -16,13 +16,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         (request: any) =>
           request?.cookies?.Authentication ||
           request?.Authentication ||
-          request?.headers.Authentication,
+          request?.headers?.Authentication,
       ]),
       secretOrKey: configService.get('JWT_SECRET'),
     });
   }
 
   async validate({ userId }: TokenPayload) {
-    return this.usersService.getUser({ id: userId });
+    return this.usersService.getUser({ _id: userId });
   }
 }

@@ -1,10 +1,11 @@
 import {
   IsArray,
   IsEmail,
+  IsNotEmpty,
   IsOptional,
+  IsString,
   IsStrongPassword,
 } from 'class-validator';
-import { RoleDto } from './role.dto';
 
 export class CreateUserDto {
   @IsEmail()
@@ -15,5 +16,7 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsArray()
-  roles?: RoleDto[];
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  roles?: string[];
 }

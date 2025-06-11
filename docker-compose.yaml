@@ -11,6 +11,11 @@ services:
       - '3000:3000'
     volumes:
       - .:/usr/src/app
+    depends_on:
+      - mongo
+      - payments
+    environment:
+      MONGO_URL: mongodb://mongo:27017/sleepr
   auth:
     build:
       context: .
@@ -23,6 +28,10 @@ services:
       - '3001:3001'
     volumes:
       - .:/usr/src/app
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URL: mongodb://mongo:27017/sleepr    
   payments:
     build:
       context: .
@@ -35,6 +44,10 @@ services:
       - '3003:3003'
     volumes:
       - .:/usr/src/app
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URL: mongodb://mongo:27017/sleepr
   notifications:
     build:
       context: .
@@ -45,10 +58,16 @@ services:
       - ./apps/notifications/.env
     volumes:
       - .:/usr/src/app
-  mysql:
-    image: mysql
-    env_file:
-      - .env
+    depends_on:
+      - mongo
+    environment:
+      MONGO_URL: mongodb://mongo:27017/sleepr    
+  mongo:
+    image: mongo
     ports:
-      - '3306:3306'     
+      - '27018:27017'  # Expose to host for Compass
+    volumes:
+      - mongo_data:/data/db  # Persist Mongo data
 
+volumes:
+  mongo_data:

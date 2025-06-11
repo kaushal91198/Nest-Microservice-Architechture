@@ -4,7 +4,6 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { User, Role } from '@app/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { GetUserDto } from './dto/get-user.dto';
 import { UsersRepository } from './users.repository';
@@ -15,12 +14,10 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     await this.validateCreateUserDto(createUserDto);
-    const user = new User({
+    return this.usersRepository.create({
       ...createUserDto,
       password: await bcrypt.hash(createUserDto.password, 10),
-      roles: createUserDto.roles?.map((roleDto) => new Role(roleDto)),
     });
-    return this.usersRepository.create(user);
   }
 
   private async validateCreateUserDto(createUserDto: CreateUserDto) {
@@ -42,6 +39,6 @@ export class UsersService {
   }
 
   async getUser(getUserDto: GetUserDto) {
-    return this.usersRepository.findOne(getUserDto, { roles: true });
+    return this.usersRepository.findOne(getUserDto);
   }
 }
