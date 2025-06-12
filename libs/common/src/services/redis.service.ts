@@ -6,11 +6,11 @@ import Redis from 'ioredis';
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private client: Redis;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   onModuleInit() {
-    const host = this.configService.get<string>('REDIS_HOST') 
-    const port = this.configService.get<number>('REDIS_PORT') 
+    const host = this.configService.get<string>('REDIS_HOST')
+    const port = this.configService.get<number>('REDIS_PORT')
 
     this.client = new Redis({ host, port });
 
@@ -27,6 +27,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       return this.client.set(key, value, 'EX', ttlSeconds);
     }
     return this.client.set(key, value);
+  }
+
+  async hset(key: string, value: string, ttlSeconds?: number) {
+    this.client.hset(key, value, ttlSeconds);
   }
 
   async get(key: string): Promise<string | null> {
