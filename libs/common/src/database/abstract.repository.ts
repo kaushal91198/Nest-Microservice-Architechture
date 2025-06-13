@@ -31,13 +31,13 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
         filterQuery: FilterQuery<TDocument>,
         update: UpdateQuery<TDocument>
     ): Promise<TDocument> {
-        const document = await this.model.findByIdAndUpdate(filterQuery, update, {
+        const document = await this.model.findOneAndUpdate(filterQuery, update, {
             new: true
         }).lean<TDocument>(true)
 
         if (!document) {
             this.logger.warn('Document was not found with filterQuery')
-            throw new NotFoundException('Document was not found')
+            // throw new NotFoundException('Document was not found')
         }
 
         return document

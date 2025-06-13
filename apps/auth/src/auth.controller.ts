@@ -19,7 +19,6 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     await this.authService.login(user, request, response);
-    return response.status(200).json(user);
   }
 
   @Get('refresh-token')
@@ -31,7 +30,7 @@ export class AuthController {
     await this.authService.getRefreshAndAccessToken(request, response);
     return response.status(200).json({ message: 'Token Generated successfully' });
   }
- 
+
   @Get('logout')
   @UseGuards(JwtAuthGuard)
   async logout(
@@ -39,16 +38,17 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     await this.authService.logout(request, response);
-    return response.status(200).json({ message: 'Logged out successfully' });
   }
 
   @Get('force-logout-all')
   @UseGuards(JwtAuthGuard)
   async logoutFromAllDevices(
-    @Req() request: Request,
+    @Req() request: any,
     @Res({ passthrough: true }) response: Response,
   ) {
-    await this.authService.logoutFromAllDevices(request, response);
+    await this.authService.logoutFromAllDevices(request?.user?._id);
+    response.clearCookie('accessToken');
+    response.clearCookie('refreshToken');
     return response.status(200).json({ message: 'Logged out from all devices' });
   }
 

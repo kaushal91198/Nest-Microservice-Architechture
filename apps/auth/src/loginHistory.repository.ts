@@ -8,7 +8,7 @@ import { LoginHistoryDocument } from './models/loginHistory.schema';
 export class LoginHistoryRepository extends AbstractRepository<LoginHistoryDocument> {
   protected readonly logger = new (Logger as any)(LoginHistoryRepository.name);
 
-  constructor(@InjectModel(LoginHistoryDocument.name) userModel: Model<LoginHistoryDocument>) {
-    super(userModel);
+  constructor(@InjectModel(LoginHistoryDocument.name) loginHistoryModel: Model<LoginHistoryDocument>) {
+    super(loginHistoryModel);
   }
 }

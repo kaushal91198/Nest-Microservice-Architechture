@@ -17,6 +17,10 @@ export class LoginHistoryDocument extends AbstractDocument {
 
   @Prop({ default: () => new Date() })
   loginTime: Date;
+
+  @Prop({ default: () => null, required: false })
+  logoutTime?: Date
+
 }
 
 export const LoginHistorySchema =

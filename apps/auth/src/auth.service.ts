@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisService, UserDocument } from '@app/common';
 import { JwtService } from '@nestjs/jwt';
@@ -17,97 +17,104 @@ export class AuthService {
   ) { }
 
   async login(user: UserDocument, request: any, response: Response) {
-
-    const sessionId = v4()
-    const tokenPayload: TokenPayload = {
-      userId: user._id.toHexString(),
-      sessionId
-    };
-
-    const { accessToken, refreshToken } = await this.setToken(tokenPayload)
-    const ipAddress: string =
-      request.headers["x-forwarded-for"] || request.socket.remoteAddress || "";
-    const userAgent: string = request.headers["user-agent"] || "";
-
-    await this.loginHistoryRepository.create({
-      userId: user._id.toHexString(),
-      sessionId,
-      ipAddress,
-      userAgent,
-      loginTime: new Date()
-    });
-
-    response
-      .cookie('accessToken', accessToken, {
-        httpOnly: true,
-        secure: true,
-        maxAge: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION'), // 15 min
-      })
-      .cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: true,
-        maxAge: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION'), // 7 days
+    try {
+      const sessionId = v4()
+      const tokenPayload: TokenPayload = {
+        userId: user._id.toHexString(),
+        sessionId
+      };
+      const ipAddress: string =
+        request.headers["x-forwarded-for"] || request.socket.remoteAddress || "";
+      const userAgent: string = request.headers["user-agent"] || "";
+      await this.logoutFromAllDevices(tokenPayload.userId)
+      const { accessToken, refreshToken } = await this.setToken(tokenPayload)
+      await this.loginHistoryRepository.create({
+        userId: user._id.toHexString(),
+        sessionId,
+        ipAddress,
+        userAgent,
+        loginTime: new Date()
       });
+      response
+        .cookie('accessToken', accessToken, {
+          httpOnly: true,
+          secure: true,
+          maxAge: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION'), // 15 min
+        })
+        .cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          secure: true,
+          maxAge: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION'), // 7 days
+        });
+      return response.status(200).json(user);
+    } catch (error) {
+      throw new HttpException("Something went wrong", 400)
+    }
   }
 
   async getRefreshAndAccessToken(request: any, response: Response) {
-
-
-    const { accessToken, refreshToken } = await this.setToken(request['user'])
-
-    response
-      .cookie('accessToken', accessToken, {
-        httpOnly: true,
-        secure: true,
-        maxAge: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION'), // 15 min
-      })
-      .cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: true,
-        maxAge: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION'), // 7 days
-      });
+    try {
+      const { accessToken, refreshToken } = await this.setToken(request['user'])
+      response
+        .cookie('accessToken', accessToken, {
+          httpOnly: true,
+          secure: true,
+          maxAge: this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION'), // 15 min
+        })
+        .cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          secure: true,
+          maxAge: this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION'), // 7 days
+        });
+    } catch (error) {
+      throw new HttpException("Something went wrong", 400)
+    }
   }
 
-  async logoutFromAllDevices(request: any, response: Response) {
-    const userId = request.user._id; // Use middleware to extract user
+  async logoutFromAllDevices(userId: string) {
+    try {
+      // hkeys means we’re retrieving all the field names (keys) within this Hash — each field typically corresponds to a sessionId.
+      const sessions = await this.redisService.getClient().hkeys(`sessions:${userId}`);
 
+      // We create a pipeline with Redis to perform multiple operations efficiently in a batch.
+      const pipeline = this.redisService.getClient().pipeline();
 
-    // hkeys means we’re retrieving all the field names (keys) within this Hash — each field typically corresponds to a sessionId.
-    const sessions = await this.redisService.getClient().hkeys(`sessions:${userId}`);
-
-    // We create a pipeline with Redis to perform multiple operations efficiently in a batch.
-    const pipeline = this.redisService.getClient().pipeline();
-
-    // We delete its associated refresh token from Redis.
-    sessions.forEach(sessionId => {
-      pipeline.del(`refresh:${userId}:${sessionId}`);
-    });
-
-    // After adding all delete commands to the pipeline, we delete the main sessions:userId Hash itself.
-    pipeline.del(`sessions:${userId}`);
-    await pipeline.exec();
-
-    response.clearCookie('accessToken');
-    response.clearCookie('refreshToken');
-    return true
+      // We delete its associated refresh token from Redis.
+      sessions.forEach(sessionId => {
+        pipeline.del(`refresh:${userId}:${sessionId}`);
+      });
+      // After adding all delete commands to the pipeline, we delete the main sessions:userId Hash itself.
+      pipeline.del(`sessions:${userId}`);
+      await pipeline.exec();
+      await this.loginHistoryRepository.findOneAndUpdate(
+        { userId, logoutTime: null },
+        { $set: { logoutTime: new Date() } },
+      );
+      return true
+    } catch (error) {
+      throw new HttpException("Something went wrong", 400)
+    }
   }
 
   async logout(request: any, response: Response) {
-    const refreshToken = request.cookies?.accessToken
-    if (!refreshToken) return false
-
+    const accessToken = request.cookies?.accessToken
+    if (!accessToken) {
+      throw new UnauthorizedException();
+    }
     try {
-      const decoded = this.jwtService.verify(refreshToken, this.configService.get('JWT_SECRET'));
+      const decoded = this.jwtService.verify(accessToken, this.configService.get('JWT_SECRET'));
       const { userId, sessionId } = decoded;
-
+      await this.loginHistoryRepository.findOneAndUpdate(
+        { userId, sessionId },
+        { $set: { logoutTime: new Date() } },
+      );
       await this.redisService.del(`refresh:${userId}:${sessionId}`);
       await this.redisService.getClient().hdel(`sessions:${userId}`, sessionId);
-
       response.clearCookie('accessToken');
       response.clearCookie('refreshToken');
-      return true
+      return response.status(200).json({ message: 'Logged out successfully' });
     } catch (err) {
-      return response.sendStatus(403);
+      throw new UnauthorizedException();
     }
   }
 
