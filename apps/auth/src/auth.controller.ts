@@ -15,10 +15,11 @@ export class AuthController {
   @Post('login')
   async login(
     @CurrentUser() user: UserDocument,
+    @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
-    await this.authService.login(user, response);
-    response.send(user);
+    await this.authService.login(user, request, response);
+    return response.status(200).json(user);
   }
 
   @Get('refresh-token')
@@ -27,10 +28,30 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
-    console.log("api calledddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
-    await this.authService.getRefreshAndAccessToken(request,response);
-    response.send({});
+    await this.authService.getRefreshAndAccessToken(request, response);
+    return response.status(200).json({ message: 'Token Generated successfully' });
   }
+ 
+  @Get('logout')
+  @UseGuards(JwtAuthGuard)
+  async logout(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    await this.authService.logout(request, response);
+    return response.status(200).json({ message: 'Logged out successfully' });
+  }
+
+  @Get('force-logout-all')
+  @UseGuards(JwtAuthGuard)
+  async logoutFromAllDevices(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    await this.authService.logoutFromAllDevices(request, response);
+    return response.status(200).json({ message: 'Logged out from all devices' });
+  }
+
 
   @UseGuards(JwtAuthGuard)
   @MessagePattern('authenticate')

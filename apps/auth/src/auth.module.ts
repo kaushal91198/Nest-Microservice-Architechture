@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { LoggerModule } from '@app/common';
+import { DatabaseModule, LoggerModule } from '@app/common';
 import { JwtModule } from '@nestjs/jwt';
 import * as Joi from 'joi';
 import { AuthController } from './auth.controller';
@@ -9,9 +9,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LocalStategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RedisModule } from '@app/common/services/redis.module';
+import { LoginHistoryDocument, LoginHistorySchema } from './models/loginHistory.schema';
+import { LoginHistoryRepository } from './loginHistory.repository';
 
 @Module({
   imports: [
+    DatabaseModule,
+    DatabaseModule.forFeature([
+      { name: LoginHistoryDocument.name, schema: LoginHistorySchema },
+    ]),
     RedisModule,
     UsersModule,
     LoggerModule,
@@ -37,6 +43,6 @@ import { RedisModule } from '@app/common/services/redis.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStategy, JwtStrategy],
+  providers: [AuthService, LocalStategy, JwtStrategy, LoginHistoryRepository],
 })
-export class AuthModule {}
+export class AuthModule { }
