@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Req, Res, SetMetadata, UseGuards } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { Response } from 'express';
 import { CurrentUser, UserDocument } from '@app/common';
@@ -38,6 +38,15 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     await this.authService.logout(request, response);
+  }
+
+  @Get('status')
+  @UseGuards(JwtAuthGuard)
+  async authStatus(
+    @Req() request: any,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return response.status(200).json(request?.user);
   }
 
   @Get('force-logout-all')

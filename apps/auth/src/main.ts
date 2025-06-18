@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
@@ -16,9 +16,17 @@ async function bootstrap() {
       port: configService.get('TCP_PORT'),
     },
   });
-  app.use(cookieParser());
+
+  app.enableCors({
+    origin: 'http://localhost:3002', // or your frontend's domain
+    credentials: true,
+  }); app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useLogger(app.get(Logger));
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
+  });
   await app.startAllMicroservices();
   await app.listen(configService.get('HTTP_PORT'));
 }
