@@ -1,41 +1,56 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { PAYMENTS_SERVICE, UserDto } from '@app/common';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
-import { ReservationsRepository } from './reservations.repository';
+import { ReservationsRepository } from './repositories/reservations.repository';
 import { ClientProxy } from '@nestjs/microservices';
 import { map } from 'rxjs';
+import { CategoryRepository } from './repositories/category.repository';
 
 @Injectable()
 export class ReservationsService {
   constructor(
     private readonly reservationsRepository: ReservationsRepository,
+    private readonly categoryRepository: CategoryRepository,
+
     @Inject(PAYMENTS_SERVICE) private readonly paymentsService: ClientProxy,
-  ) {}
+  ) { }
 
   async create(
     createReservationDto: CreateReservationDto,
-    { email, _id: userId }: UserDto,
+    files: any[],
   ) {
-    return this.paymentsService
-      .send('create_charge', {
-        ...createReservationDto.charge,
-        email,
+    try {
+      const images = files.map((file) => {
+        return file.path
       })
-      .pipe(
-        map((res) => {
-          return this.reservationsRepository.create({
-            ...createReservationDto,
-            invoiceId: res.id,
-            timestamp: new Date(),
-            userId,
-          });
-        }),
-      );
+      await this.reservationsRepository.create({ ...createReservationDto, images });
+    } catch (error) {
+      throw new HttpException("Something went wrong", 400)
+    }
+    // return this.paymentsService
+    //   .send('create_charge', {
+    //     ...createReservationDto.charge,
+    //     email,
+    //   })
+    //   .pipe(
+    //     map((res) => {
+    //       return this.reservationsRepository.create({
+    //         ...createReservationDto,
+    //         invoiceId: res.id,
+    //         timestamp: new Date(),
+    //         userId,
+    //       });
+    //     }),
+    //   );
   }
 
   async findAll() {
     return this.reservationsRepository.find({});
+  }
+
+  async findCateories() {
+    return this.categoryRepository.find({});
   }
 
   async findOne(_id: string) {

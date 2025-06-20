@@ -1,24 +1,35 @@
-import { Type } from 'class-transformer';
 import {
-  IsDate,
-  IsDefined,
-  IsNotEmptyObject,
-  ValidateNested,
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsArray,
+  IsNotEmpty,
+  IsMongoId,
 } from 'class-validator';
-import { CreateChargeDto } from '@app/common';
+import { Type } from 'class-transformer';
 
 export class CreateReservationDto {
-  @IsDate()
-  @Type(() => Date)
-  startDate: Date;
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 
-  @IsDate()
-  @Type(() => Date)
-  endDate: Date;
+  @IsString()
+  @IsOptional()
+  description: string;
 
-  @IsDefined()
-  @IsNotEmptyObject()
-  @ValidateNested()
-  @Type(() => CreateChargeDto)
-  charge: CreateChargeDto;
+  @IsMongoId()
+  category_id: string;
+
+  @Type(() => Number)
+  @IsNumber()
+  price: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  offerprice: number;
+
+  @IsArray()
+  @IsOptional()
+  images: string[];
 }

@@ -7,23 +7,47 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseInterceptors,
+  Req,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
+
 import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
-import { CurrentUser, JwtAuthGuard, Roles, UserDto } from '@app/common';
+import { CustomMulterInterceptor, JwtAuthGuard, Roles, UserDto } from '@app/common';
 
-@Controller('reservations')
+@Controller('products')
 export class ReservationsController {
   constructor(private readonly reservationsService: ReservationsService) { }
 
-  @UseGuards(JwtAuthGuard)
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    CustomMulterInterceptor({
+      fields: [
+        { name: 'images', maxCount: 5 }
+      ],
+      maxFileSizeInMB: 10,
+      allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png'],
+    }),
+  )
   async create(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
     @Body() createReservationDto: CreateReservationDto,
-    @CurrentUser() user: UserDto,
   ) {
-    return this.reservationsService.create(createReservationDto, user);
+    await this.reservationsService.create(createReservationDto, request['files'].images);
+    return response.status(200).json({ message: 'Product created successfully.' });
+  }
+
+  @Get('category')
+  @UseGuards(JwtAuthGuard)
+  async getAllCategories(@Res({ passthrough: true }) response: Response) {
+    const categories = await this.reservationsService.findCateories();
+    return response.status(200).json({ data: categories, message: 'Category fetched successfully.' });
+
   }
 
   @Get()

@@ -3,20 +3,23 @@ import { AbstractDocument } from '@app/common';
 
 @Schema({ versionKey: false })
 export class ReservationDocument extends AbstractDocument {
-  @Prop()
-  timestamp: Date;
+  @Prop({ required: true })
+  name: string;
 
   @Prop()
-  startDate: Date;
+  description: string;
 
-  @Prop()
-  endDate: Date;
+  @Prop({ required: true })
+  category_id: string;
 
-  @Prop()
-  userId: string;
+  @Prop({ required: true, type: Number })
+  price: number;
 
-  @Prop()
-  invoiceId: string;
+  @Prop({ type: Number })
+  offerprice?: number;
+
+  @Prop({ type: [String], default: [] })
+  images: string[];
 }
 
 export const ReservationSchema =

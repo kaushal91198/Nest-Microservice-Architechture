@@ -8,19 +8,24 @@ import {
   AUTH_SERVICE,
   PAYMENTS_SERVICE,
 } from '@app/common';
-import { ReservationsRepository } from './reservations.repository';
+import { ReservationsRepository } from './repositories/reservations.repository';
 import {
   ReservationDocument,
   ReservationSchema,
 } from './models/reservation.schema';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { SeederService } from './seeders/seed';
+import { CategoryRepository } from './repositories/category.repository';
+import { CategoryDocument, CategorySchema } from './models/category.schema';
 
 @Module({
   imports: [
     DatabaseModule,
     DatabaseModule.forFeature([
       { name: ReservationDocument.name, schema: ReservationSchema },
+      { name: CategoryDocument.name, schema: CategorySchema },
+
     ]),
     LoggerModule,
     ConfigModule.forRoot({
@@ -60,6 +65,6 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     ]),
   ],
   controllers: [ReservationsController],
-  providers: [ReservationsService, ReservationsRepository],
+  providers: [ReservationsService, ReservationsRepository, SeederService, CategoryRepository],
 })
-export class ReservationsModule {}
+export class ReservationsModule { }
