@@ -16,6 +16,16 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
 
     }
 
+    async insertMany(documents: Array<Omit<TDocument, "_id">>): Promise<TDocument[]> {
+        const docsWithIds = documents.map((doc) => ({
+            ...doc,
+            _id: new Types.ObjectId(),
+        }));
+
+        const createdDocuments = await this.model.insertMany(docsWithIds);
+        return createdDocuments as unknown as TDocument[];
+    }
+
     async findOne(filterQuery: FilterQuery<TDocument>): Promise<TDocument> {
         const document = await this.model.findOne(filterQuery).lean<TDocument>(true)
 

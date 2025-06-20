@@ -18,9 +18,10 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: 'http://localhost:3002', // or your frontend's domain
+    origin: 'http://localhost:5000', // or your frontend's domain
     credentials: true,
-  }); app.use(cookieParser());
+  });
+  app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useLogger(app.get(Logger));
   app.enableVersioning({

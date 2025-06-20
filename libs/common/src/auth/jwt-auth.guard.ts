@@ -26,31 +26,32 @@ export class JwtAuthGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     const jwt =
       context.switchToHttp().getRequest().cookies?.accessToken
-
     if (!jwt) {
-      return false;
+      // console.log("calleddjhbhjb")
+      throw new UnauthorizedException();
     }
 
-    const roles = this.reflector.get<string[]>('roles', context.getHandler());
-
+    // const roles = this.reflector.get<string[]>('roles', context.getHandler());
     return this.authClient
       .send<UserDto>('authenticate', {
         Authentication: jwt,
       })
       .pipe(
         tap((res) => {
-          if (roles) {
-            for (const role of roles) {
-              if (!res.roles?.includes(role)) {
-                this.logger.error('The user does not have valid roles.');
-                throw new UnauthorizedException();
-              }
-            }
-          }
+          console.log(res, "respose respose respose")
+          // if (roles) {
+          //   for (const role of roles) {
+          //     if (!res.roles?.includes(role)) {
+          //       this.logger.error('The user does not have valid roles.');
+          //       throw new UnauthorizedException();
+          //     }
+          //   }
+          // }
           context.switchToHttp().getRequest().user = res;
         }),
         map(() => true),
         catchError((err) => {
+          console.log(err, "Errrnbkjnk")
           this.logger.error(err);
           return of(false);
         }),
