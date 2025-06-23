@@ -53,6 +53,10 @@ export class ReservationsService {
     return this.categoryRepository.find({});
   }
 
+  async findProducts() {
+    return this.reservationsRepository.findAllWithCategory({});
+  }
+
   async findOne(_id: string) {
     return this.reservationsRepository.findOne({ _id });
   }

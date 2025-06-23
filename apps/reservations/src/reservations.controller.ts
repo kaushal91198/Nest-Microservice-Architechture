@@ -52,6 +52,14 @@ export class ReservationsController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
+  async getAllProducts(@Res({ passthrough: true }) response: Response) {
+    const categories = await this.reservationsService.findProducts();
+    return response.status(200).json({ data: categories, message: 'Products fetched successfully.' });
+
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
   async findAll() {
     return this.reservationsService.findAll();
   }

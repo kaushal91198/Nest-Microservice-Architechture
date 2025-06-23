@@ -62,4 +62,7 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
         return this.model.findOneAndDelete(filterQuery).lean<TDocument | null>();
     }
 
+    async deleteAll(): Promise<{ deletedCount?: number }> {
+        return this.model.deleteMany({});
+    }
 }

@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { AbstractDocument } from '@app/common';
+import { Types } from 'mongoose';
+import { CategoryDocument } from './category.schema';
 
 @Schema({ versionKey: false })
 export class ReservationDocument extends AbstractDocument {
@@ -9,7 +11,11 @@ export class ReservationDocument extends AbstractDocument {
   @Prop()
   description: string;
 
-  @Prop({ required: true })
+  @Prop({
+    required: true,
+    type: Types.ObjectId,
+    ref: CategoryDocument.name
+  })
   category_id: string;
 
   @Prop({ required: true, type: Number })
