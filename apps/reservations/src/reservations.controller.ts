@@ -50,24 +50,20 @@ export class ReservationsController {
 
   }
 
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  async getAllProducts(@Res({ passthrough: true }) response: Response) {
+  @Get('')
+  // @UseGuards(JwtAuthGuard)
+  async getAllProducts(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
     const categories = await this.reservationsService.findProducts();
     return response.status(200).json({ data: categories, message: 'Products fetched successfully.' });
 
   }
 
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  async findAll() {
-    return this.reservationsService.findAll();
-  }
-
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  async findOne(@Param('id') id: string) {
-    return this.reservationsService.findOne(id);
+  // @UseGuards(JwtAuthGuard)
+  async getProduct(@Param('id') id: string, @Res({ passthrough: true }) response: Response) {
+    const categories = await this.reservationsService.findProducts({ _id: id });
+    return response.status(200).json({ data: categories, message: 'Products fetched successfully.' });
+
   }
 
   @Patch(':id')

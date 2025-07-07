@@ -45,20 +45,12 @@ export class ReservationsService {
     //   );
   }
 
-  async findAll() {
-    return this.reservationsRepository.find({});
-  }
-
   async findCateories() {
     return this.categoryRepository.find({});
   }
 
-  async findProducts() {
-    return this.reservationsRepository.findAllWithCategory({});
-  }
-
-  async findOne(_id: string) {
-    return this.reservationsRepository.findOne({ _id });
+  async findProducts(filter = {}) {
+    return this.reservationsRepository.findAllWithCategory(filter);
   }
 
   async update(_id: string, updateReservationDto: UpdateReservationDto) {
