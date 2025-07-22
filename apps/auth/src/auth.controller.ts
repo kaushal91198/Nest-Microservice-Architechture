@@ -20,6 +20,8 @@ export class AuthController {
     response.send(jwt);
   }
 
+  
+
   @UseGuards(JwtAuthGuard)
   @MessagePattern('authenticate')
   async authenticate(@Payload() data: any) {
