@@ -12,6 +12,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "stripe": "^18.2.0"
+    "stripe": "14.1.0"
   }
 }

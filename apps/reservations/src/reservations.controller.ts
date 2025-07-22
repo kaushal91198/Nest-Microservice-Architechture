@@ -15,7 +15,7 @@ import { CurrentUser, JwtAuthGuard, Roles, UserDto } from '@app/common';
 
 @Controller('reservations')
 export class ReservationsController {
-  constructor(private readonly reservationsService: ReservationsService) { }
+  constructor(private readonly reservationsService: ReservationsService) {}
 
   @UseGuards(JwtAuthGuard)
   @Post()
@@ -49,7 +49,7 @@ export class ReservationsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  @Roles('Admin', 'Owner')
+  @Roles('Admin')
   async remove(@Param('id') id: string) {
     return this.reservationsService.remove(id);
   }

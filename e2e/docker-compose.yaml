@@ -5,70 +5,34 @@ services:
     volumes:
       - ./specs:/usr/src/app/specs
     depends_on:
-      reservations:
-        condition: service_healthy
-      auth:
-        condition: service_healthy
-      payments:
-        condition: service_healthy
-      notifications:
-        condition: service_healthy
+      - reservations
+      - auth
+      - payments
+      - notifications
+      - mongo
   reservations:
-    image: nest-microservices-reservations
-    command: npm run start:dev reservations
+    image: us-east4-docker.pkg.dev/sleepr-378423/reservations/production
     env_file:
       - ../apps/reservations/.env
     ports:
       - '3000:3000'
-    healthcheck:
-      test: ["CMD", "node", "-e", "process.exit(0)"]
-      interval: 10s
-      timeout: 3s
-      retries: 3  
   auth:
-    image: nest-microservices-auth
-    command: npm run start:dev auth 
+    image: us-east4-docker.pkg.dev/sleepr-378423/auth/production
     env_file:
       - ../apps/auth/.env
     ports:
       - '3001:3001'
-    healthcheck:
-      test: ["CMD", "node", "-e", "process.exit(0)"]
-      interval: 10s
-      timeout: 3s
-      retries: 3       
   payments:
-    image: nest-microservices-payments
-    command: npm run start:dev payments
+    image: us-east4-docker.pkg.dev/sleepr-378423/payments/production
     ports:
       - '3003:3003'
     env_file:
       - ../apps/payments/.env
-    healthcheck:
-      test: ["CMD", "node", "-e", "process.exit(0)"]
-      interval: 10s
-      timeout: 3s
-      retries: 3       
   notifications:
-    image: nest-microservices-notifications
-    command: npm run start:dev notifications
+    image: us-east4-docker.pkg.dev/sleepr-378423/notifications/production
     ports:
       - '3004:3004'
     env_file:
       - ../apps/notifications/.env
-    healthcheck:
-      test: ["CMD", "node", "-e", "process.exit(0)"]
-      interval: 10s
-      timeout: 3s
-      retries: 3       
   mongo:
     image: mongo
-    ports:
-      - '27018:27017'  # Expose to host for Compass
-    volumes:
-      - mongo_data:/data/db  # Persist Mongo data
-volumes:
-  mongo_data:
-
-
-

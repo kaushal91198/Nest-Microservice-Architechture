@@ -19,7 +19,7 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     @Inject(AUTH_SERVICE) private readonly authClient: ClientProxy,
     private readonly reflector: Reflector,
-  ) { }
+  ) {}
 
   canActivate(
     context: ExecutionContext,
