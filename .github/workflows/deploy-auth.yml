@@ -16,7 +16,7 @@ env:
   ECR_REPOSITORY: nest-auth
   ECS_SERVICE: auth-service-task-service-d2bqs1ur
   ECS_CLUSTER: nest-micro-service-auth
-  ECS_TASK_DEFINITION: .aws/auth-task-definition.json
+  ECS_TASK_DEFINITION: apps/auth/.aws/auth-task-definition.json
   CONTAINER_NAME: Auth-container
   
   
@@ -66,7 +66,7 @@ jobs:
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
 
-          
+
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@df9643053eda01f169e64a0e60233aacca83799a
