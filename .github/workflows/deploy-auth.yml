@@ -18,6 +18,7 @@ env:
   ECS_CLUSTER: nest-micro-service-auth
   ECS_TASK_DEFINITION: .aws/auth-task-definition.json
   CONTAINER_NAME: Auth-container
+  
 
 jobs:
   deploy:
