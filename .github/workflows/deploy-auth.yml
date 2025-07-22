@@ -14,9 +14,9 @@ on:
 env:
   AWS_REGION: ap-south-1
   ECR_REPOSITORY: nest-auth
-  CLUSTER_NAME: nest-micro-service-auth
-  ECS_SERVICE_NAME: auth-service-task-service-d2bqs1ur
-  TASK_DEFINITION_FAMILY: auth-service-task
+  ECS_SERVICE: auth-service-task-service-d2bqs1ur
+  ECS_CLUSTER: nest-micro-service-auth
+  ECS_TASK_DEFINITION: .aws/auth-task-definition.json
   CONTAINER_NAME: Auth-container
 
 jobs:
@@ -42,48 +42,33 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push Docker image to ECR
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          IMAGE_TAG=${{ github.sha }}
+          # Build a docker container and
+          # push it to ECR so that it can
+          # be deployed to ECS.
           docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG \
             --target production \
             -f apps/auth/Dockerfile .
           docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Fetch current task definition
-        id: fetch-task-def
-        run: |
-          aws ecs describe-task-definition \
-            --task-definition ${{ env.TASK_DEFINITION_FAMILY }} \
-            --query 'taskDefinition' \
-            > task-def.json
-
-      - name: Update task definition with new image
-        id: update-task-def
-        run: |
-          IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
-          cat task-def.json | jq \
-            --arg IMAGE "$IMAGE_URI" \
-            --arg NAME "${{ env.CONTAINER_NAME }}" \
-            'del(.taskDefinitionArn, .requiresAttributes, .revision, .status, .registeredAt, .registeredBy) |
-            .containerDefinitions |= map(if .name == $NAME then .image = $IMAGE else . end)' \
-            > new-task-def.json
-
-      - name: Register new task definition revision
-        id: register-task-def
-        run: |
-          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
-            --cli-input-json file://new-task-def.json \
-            --query 'taskDefinition.taskDefinitionArn' \
-            --output text)
-          echo "NEW_TASK_DEF_ARN=$NEW_TASK_DEF_ARN" >> $GITHUB_ENV
-
-      - name: Deploy to ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@c804dfbdd57f713b6c079302a4c01db7017a36fc
         with:
-          task-definition: ${{ env.NEW_TASK_DEF_ARN }}
-          service: ${{ env.ECS_SERVICE_NAME }}
-          cluster: ${{ env.CLUSTER_NAME }}
+          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@df9643053eda01f169e64a0e60233aacca83799a
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
