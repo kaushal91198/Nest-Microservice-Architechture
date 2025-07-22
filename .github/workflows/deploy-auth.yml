@@ -19,7 +19,6 @@ env:
   ECS_TASK_DEFINITION: .aws/auth-task-definition.json
   CONTAINER_NAME: Auth-container
   
-
 jobs:
   deploy:
     name: Build and Deploy Auth Service
