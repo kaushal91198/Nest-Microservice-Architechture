@@ -1,28 +1,28 @@
-name: Deploy Auth Service
+name: Deploy Notification Service
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'apps/auth/**'
+      - 'apps/notifications/**'
       - 'libs/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
-      - '.github/workflows/deploy-auth.yml'
+      - '.github/workflows/deploy-notification.yml'
 
 env:
   AWS_REGION: ap-south-1
-  ECR_REPOSITORY: nest-auth
-  ECS_SERVICE: auth-service
+  ECR_REPOSITORY: nest-notification
+  ECS_SERVICE: notification-task-service
   ECS_CLUSTER: nest-micro-service-auth
-  ECS_TASK_DEFINITION: apps/auth/.aws/auth-task-definition.json
-  CONTAINER_NAME: Auth-container
+  ECS_TASK_DEFINITION: apps/notifications/.aws/notification-task-definition.json
+  CONTAINER_NAME: notification-container
   
   
 jobs:
   deploy:
-    name: Build and Deploy Auth Service
+    name: Build and Deploy Notification Service
     runs-on: ubuntu-latest
 
     steps:
@@ -54,7 +54,7 @@ jobs:
           # be deployed to ECS.
           docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG \
             --target production \
-            -f apps/auth/Dockerfile .
+            -f apps/notifications/Dockerfile .
           docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
