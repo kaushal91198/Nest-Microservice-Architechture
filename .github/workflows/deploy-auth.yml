@@ -14,7 +14,7 @@ on:
 env:
   AWS_REGION: ap-south-1
   ECR_REPOSITORY: nest-auth
-  ECS_SERVICE: auth-service-task-service-d2bqs1ur
+  ECS_SERVICE: auth-task-service
   ECS_CLUSTER: nest-micro-service-auth
   ECS_TASK_DEFINITION: apps/auth/.aws/auth-task-definition.json
   CONTAINER_NAME: Auth-container
