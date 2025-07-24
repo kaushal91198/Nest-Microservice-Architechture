@@ -22,7 +22,7 @@ env:
   
 jobs:
   deploy:
-    name: Build and Deploy Auth Service
+    name: Build and Deploy Reservation Service
     runs-on: ubuntu-latest
 
     steps:
@@ -75,3 +75,22 @@ jobs:
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
+
+      - name: 🧹 Deregister old ECS task definitions (keep last 10)
+        run: |
+          family=$(basename ${{ env.ECS_TASK_DEFINITION }} .json)
+          echo "Task definition family: $family"
+
+          old_defs=$(aws ecs list-task-definitions \
+            --family-prefix "$family" \
+            --region ${{ env.AWS_REGION }} \
+            --sort DESC \
+            --query 'taskDefinitionArns[10:]' \
+            --output text)
+
+          for def in $old_defs; do
+            echo "Deregistering $def"
+            aws ecs deregister-task-definition \
+              --task-definition $def \
+              --region ${{ env.AWS_REGION }}
+          done
